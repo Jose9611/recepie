@@ -57,7 +57,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
 
-
     def _params_to_ints(self, qs):
         """Convert a list of strings to integers."""
         return [int(str_id) for str_id in qs.split(',')]
