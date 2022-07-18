@@ -1,4 +1,3 @@
-from django.shortcuts import render
 """
 Views for the recipe APIs
 """
@@ -43,7 +42,6 @@ from rest_framework.response import Response
         ]
     )
 )
-
 class RecipeViewSet(viewsets.ModelViewSet):
     """View for manage recipe APIs."""
     serializer_class = serializers.RecipeDetailSerializer
@@ -108,8 +106,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ]
     )
 )
-
-
 class BaseRecipeAttrViewSet(mixins.DestroyModelMixin,
                             mixins.UpdateModelMixin,
                             mixins.ListModelMixin,
@@ -133,12 +129,10 @@ class BaseRecipeAttrViewSet(mixins.DestroyModelMixin,
 
 
 class TagViewSet(BaseRecipeAttrViewSet):
-    serializer_class= serializers.TagSerializer
-    queryset =Tag.objects.all()
+    serializer_class = serializers.TagSerializer
+    queryset = Tag.objects.all()
 
 
 class IngredientViewSet(BaseRecipeAttrViewSet):
-    """Manage ingredients in the database."""
     serializer_class = serializers.IngredientSerializer
     queryset = Ingredient.objects.all()
-

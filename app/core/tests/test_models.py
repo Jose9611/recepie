@@ -7,6 +7,7 @@ from decimal import Decimal
 from core import models
 from unittest.mock import patch
 
+
 def create_user(email='user@example.com', password='testpass123'):
     """Create a return a new user."""
     return get_user_model().objects.create_user(email, password)
@@ -43,7 +44,6 @@ class ModelTests(TestCase):
         """Test that creating a user without an email raises a ValueError."""
         with self.assertRaises(ValueError):
             get_user_model().objects.create_user('', 'test123')
-
 
     def test_create_recipe(self):
         """Test creating a recipe is successful."""
@@ -86,4 +86,3 @@ class ModelTests(TestCase):
         file_path = models.recipe_image_file_path(None, 'example.jpg')
 
         self.assertEqual(file_path, f'uploads/recipe/{uuid}.jpg')
-
