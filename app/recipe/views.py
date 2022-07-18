@@ -1,6 +1,7 @@
 """
 Views for the recipe APIs
 """
+from rest_framework import pagination
 from drf_spectacular.utils import (
     extend_schema_view,
     extend_schema,
@@ -26,6 +27,12 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 
+class StandardResultsSetPagination(pagination.PageNumberPagination):
+    page_size = 5
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
+
+
 @extend_schema_view(
     list=extend_schema(
         parameters=[
@@ -48,6 +55,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+
 
     def _params_to_ints(self, qs):
         """Convert a list of strings to integers."""
@@ -113,6 +122,7 @@ class BaseRecipeAttrViewSet(mixins.DestroyModelMixin,
     """Base viewset for recipe attributes."""
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         # return self.queryset.filter(user=self.request.user).order_by('-name')
