@@ -1,11 +1,8 @@
 from django.contrib import admin  # noqa
 from django.utils.translation import gettext_lazy as _
-
-
 """
 Django admin customization.
 """
-from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 # Register your models here.
@@ -49,3 +46,6 @@ class UserAdmin(BaseUserAdmin):
 
 
 admin.site.register(models.User, UserAdmin)
+admin.site.register(models.Recipe)
+admin.site.register(models.Tag)
+admin.site.register(models.Ingredient)
