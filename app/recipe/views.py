@@ -7,15 +7,17 @@ from drf_spectacular.utils import (
     OpenApiParameter,
     OpenApiTypes,
 )
-
 from rest_framework import (
     viewsets,
     mixins,
     status,
 )
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-# Create your views here.
+from rest_framework import pagination
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from core.models import (
     Recipe,
     Tag,
@@ -24,6 +26,12 @@ from core.models import (
 from recipe import serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
+
+class StandardResultsSetPagination(pagination.PageNumberPagination):
+    page_size = 100
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
 
 
 @extend_schema_view(
@@ -46,7 +54,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     """View for manage recipe APIs."""
     serializer_class = serializers.RecipeDetailSerializer
     queryset = Recipe.objects.all()
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [JWTAuthentication]
+
     permission_classes = [IsAuthenticated]
 
     def _params_to_ints(self, qs):
@@ -54,6 +63,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return [int(str_id) for str_id in qs.split(',')]
 
     def get_queryset(self):
+        pagination_class = StandardResultsSetPagination
         """Retrieve recipes for authenticated user."""
         tags = self.request.query_params.get('tags')
         ingredients = self.request.query_params.get('ingredients')
@@ -111,11 +121,12 @@ class BaseRecipeAttrViewSet(mixins.DestroyModelMixin,
                             mixins.ListModelMixin,
                             viewsets.GenericViewSet):
     """Base viewset for recipe attributes."""
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # return self.queryset.filter(user=self.request.user).order_by('-name')
+        pagination_class = StandardResultsSetPagination
+        return self.queryset.filter(user=self.request.user).order_by('-name')
         assigned_only = bool(
             int(self.request.query_params.get('assigned_only', 0))
         )
