@@ -51,12 +51,14 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     """User in the system."""
+
     email = models.EmailField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
     phone = models.CharField(max_length=20,blank=True,null=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
+
 
 
     objects = UserManager()
