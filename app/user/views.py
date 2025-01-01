@@ -80,6 +80,8 @@ def verify_otp(request):
     # You can authenticate the user or create a new user here if needed
     user = authenticate(username=username, password=request.data.get('password'))
     if user is not None:
+        user.is_verified =True
+        user.save()
         return Response({'detail': 'OTP verified and user logged in'}, status=status.HTTP_200_OK)
     else:
         return Response({'detail': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
