@@ -17,12 +17,18 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = get_user_model()
-        fields = ['email', 'password', 'name','phone','is_verified']
+        fields = ['email', 'password', 'name','phone','is_verified','groups']
         extra_kwargs = {'password': {'write_only': True, 'min_length': 5}}
 
     def create(self, validated_data):
+        groups = validated_data.pop('groups',[])
+        user = get_user_model().objects.create_user(**validated_data)
+
+        # Add the user to the specified groups
+        if groups:
+            user.groups.set(groups)
         """Create and return a user with encrypted password."""
-        return get_user_model().objects.create_user(**validated_data)
+        return user
 
     def update(self, instance, validated_data):
         """Update and return user."""
