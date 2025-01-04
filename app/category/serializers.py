@@ -10,7 +10,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ['level', 'icon', 'name','created_at','main_category','icon_url','is_visible','priority','disclaimer']
+        fields = ['id','level', 'icon', 'name','main_category','icon_url','is_visible','priority','disclaimer','created_at','updated_at']
 
 
     def create(self, validated_data):
