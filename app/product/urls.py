@@ -11,4 +11,7 @@ urlpatterns = [
     path('attribute-create/', views.CreateProductAttributeView.as_view(), name='attribute-create'),
     path('attribute-update/<int:pk>/', views.ProductAttributeUpdateView.as_view(), name='attribute-update'),
     path('attribute-list/', views.ProductAttributeListView.as_view(), name='attribute-list'),
+    path('product-variant-create/', views.CreateProductVariantView.as_view(), name='product-variant-create'),
+    path('product-variant-update/<int:pk>/', views.ProductvariantUpdateView.as_view(), name='product-variant-update'),
+    path('product-variant-list/', views.ProductvariantListView.as_view(), name='product-variant-list'),
 ]
