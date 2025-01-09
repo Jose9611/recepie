@@ -1,11 +1,12 @@
-from rest_framework import generics, filters
+from rest_framework import generics, filters,status
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth import get_user_model
 from .serializers import ProductSerializer,ProductAttributeSerializer,ProductVariantSerializer,ProductVariantDetailSerializer
 from app.permission.custom_permission import IsAdmin, IsCustomer
 from .models import Product,ProductAttribute,ProductAttributeVariant,ProductVariant
-
+from django.db.models import Case, When, F, Value, Subquery, OuterRef, BooleanField,Count,IntegerField,Sum
+from rest_framework.response import Response
 User = get_user_model()
 
 
@@ -18,6 +19,14 @@ class CreateProductView(generics.CreateAPIView):
         product = serializer.save(created_user=self.request.user)
         return product
 
+    def create(self, request, *args, **kwargs):
+
+        response = super().create(request, *args, **kwargs)
+        data = {}
+        response.data['id'] = response.data.get('id')
+        data['results'] = response.data
+        data['message'] = "Product sucessfully created"
+        return Response(data,status=status.HTTP_201_CREATED)
 
 class ProductUpdateView(generics.RetrieveUpdateAPIView):
     queryset = Product.objects.all()
@@ -42,6 +51,29 @@ class ProductListView(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]  # Use JWT Authentication
     permission_classes = [IsCustomer]  # Only authenticated users can view categories
 
+    def list(self, request, *args, **kwargs):
+        try:
+            # filtered_queryset = self.get_queryset()
+            queryset = self.filter_queryset(self.queryset)
+            count = queryset.aggregate(total_count=Count('id'))
+
+            # Pagination parameters
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                paginated_response = self.get_paginated_response(serializer.data)
+                paginated_response.data['total_count'] = count
+                return paginated_response
+
+            # If pagination is not applied, return all results
+            serializer = self.get_serializer(queryset, many=True)
+            return Response({
+                'results': serializer.data,
+                'total_count': count,
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'status': '0', 'error': str(e)}, status=status.HTTP_409_CONFLICT)
+
 
 
 
@@ -54,6 +86,14 @@ class CreateProductAttributeView(generics.CreateAPIView):
     def perform_create(self, serializer):
         product_attribute = serializer.save(created_user=self.request.user)
         return product_attribute
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        data = {}
+        response.data['id'] = response.data.get('id')
+        data['results'] = response.data
+        data['message'] = "Product Attribute sucessfully created"
+        return Response(data, status=status.HTTP_201_CREATED)
 
 
 class ProductAttributeUpdateView(generics.RetrieveUpdateAPIView):
@@ -78,6 +118,30 @@ class ProductAttributeListView(generics.ListAPIView):
     serializer_class = ProductAttributeSerializer
     authentication_classes = [JWTAuthentication]  # Use JWT Authentication
     permission_classes = [IsCustomer]  # Only authenticated users can view categories
+
+    def list(self, request, *args, **kwargs):
+        try:
+            # filtered_queryset = self.get_queryset()
+            queryset = self.filter_queryset(self.queryset)
+            count = queryset.aggregate(total_count=Count('id'))
+
+            # Pagination parameters
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                paginated_response = self.get_paginated_response(serializer.data)
+                paginated_response.data['total_count'] = count
+                return paginated_response
+
+            # If pagination is not applied, return all results
+            serializer = self.get_serializer(queryset, many=True)
+            return Response({
+                'results': serializer.data,
+                'total_count': count,
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'status': '0', 'error': str(e)}, status=status.HTTP_409_CONFLICT)
+
 
 
 class CreateProductVariantView(generics.CreateAPIView):
@@ -106,6 +170,15 @@ class CreateProductVariantView(generics.CreateAPIView):
                 pass
 
         return product_variant  # Return the created ProductVariant
+
+    def create(self, request, *args, **kwargs):
+
+        response = super().create(request, *args, **kwargs)
+        data = {}
+        response.data['id'] = response.data.get('id')
+        data['results'] = response.data
+        data['message'] = "Product Variant sucessfully created"
+        return Response(data, status=status.HTTP_201_CREATED)
 
 
 class ProductvariantUpdateView(generics.RetrieveUpdateAPIView):
@@ -139,6 +212,30 @@ class ProductvariantListView(generics.ListAPIView):
     serializer_class = ProductVariantDetailSerializer
     authentication_classes = [JWTAuthentication]  # Use JWT Authentication
     permission_classes = [IsCustomer]  # Only authenticated users can view categories
+
+    def list(self, request, *args, **kwargs):
+        try:
+            # filtered_queryset = self.get_queryset()
+            queryset = self.filter_queryset(self.queryset)
+            count = queryset.aggregate(total_count=Count('id'))
+
+            # Pagination parameters
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                paginated_response = self.get_paginated_response(serializer.data)
+                paginated_response.data['total_count'] = count
+                return paginated_response
+
+            # If pagination is not applied, return all results
+            serializer = self.get_serializer(queryset, many=True)
+            return Response({
+                'results': serializer.data,
+                'total_count': count,
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'status': '0', 'error': str(e)}, status=status.HTTP_409_CONFLICT)
+
 
 
 
