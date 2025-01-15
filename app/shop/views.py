@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from rest_framework import generics,filters,status
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth import get_user_model
 from .serializers import ShopSerializer,InventorySerializer,InventoryDetailSerializer
@@ -9,6 +10,8 @@ from .models import Shop,Inventory
 User = get_user_model()
 from django.db.models import Case, When, F, Value, Subquery, OuterRef, BooleanField,Count,IntegerField,Sum
 from rest_framework.response import Response
+from .service.product_bulk_import import ProductCSVBulkCreateService
+from .common.contants import MESSAGES
 # Create your views here.
 class CreateShopView(generics.CreateAPIView):
     serializer_class = ShopSerializer
@@ -140,3 +143,37 @@ class InventoryListView(generics.ListAPIView):
             }, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'status': '0', 'error': str(e)}, status=status.HTTP_409_CONFLICT)
+
+class ProductVariantCSVBulkCreate(APIView):
+    authentication_classes = [JWTAuthentication]  # Use JWT Authentication
+    permission_classes = [IsCustomer]  # Only authenticated users can view categories
+
+
+    def post(self, request):
+        try:
+            if request.FILES['file']:
+                valid, data, is_empty = ProductCSVBulkCreateService.validate_csv(request.data)
+                if not valid:
+
+                    return Response({ 'results': [],'message':MESSAGES['INVALID_CSV']}, status=status.HTTP_409_CONFLICT)
+                if is_empty:
+
+                    return Response({ 'results': [],'message': MESSAGES['EMPTY_CSV']}, status=status.HTTP_409_CONFLICT)
+
+                error = ProductCSVBulkCreateService.process_csv(data, request.user,action='create')
+                if error:
+
+                    return Response({'results': [], 'message': MESSAGES['ERROR_IN_CSV'],'error':error}, status=status.HTTP_409_CONFLICT)
+
+                else:
+
+                    return Response({'results': [],'message': MESSAGES['DONE'],'error': error}, status=status.HTTP_201_CREATED)
+            else:
+
+                return Response({'results': [],'message': MESSAGES['FAILED'],}, status=status.HTTP_409_CONFLICT)
+        except Exception as ex:
+            return Response({
+                    'results': [],
+                    'message': MESSAGES['FAILED'],
+
+                }, status=status.HTTP_409_CONFLICT)
