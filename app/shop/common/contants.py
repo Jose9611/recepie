@@ -104,3 +104,16 @@ MESSAGES = {
     "SHOP_NOT_AVAILABLE":"Shop is not available during the specified time range"
 
 }
+
+CART_STATUS = {
+    "NEW": "new",
+    "TRANSACTION INITIATED": 'transaction initiated',
+    "CHECKED_OUT": 'checked out',
+    "REMOVED": 'removed'
+}
+USER = {
+    'ADMIN': 1,
+    'MERCHANT': 2,
+    'STAFF': 3,
+    'USER': 4
+}
