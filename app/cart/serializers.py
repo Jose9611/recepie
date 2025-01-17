@@ -7,11 +7,21 @@ class CartItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cartitem
-        fields = '__all__'
+        fields = ['id','created_at','updated_at']
+
+    def to_representation(self, instance):
+        # Get the default representation
+        representation = super().to_representation(instance)
+
+        # Add custom fields
+        representation['product_name'] = instance.variant.name if instance.variant and instance.variant.name else None
+        representation['mrp'] =  instance.variant.mrp if instance.variant and instance.variant.mrp else None
+        representation['price'] = instance.inventory.price if instance.inventory and instance.inventory.price else None
+        return representation
 
 
 class CartSerializer(serializers.ModelSerializer):
-    cart_items = CartItemSerializer(source='cartitem_cart')
+    cart_items = CartItemSerializer(source='cartitem_cart',many=True)
 
     """Serializer for the user object."""
 

@@ -7,11 +7,48 @@ from rest_framework.views import APIView
 from .serializers import CartAddCartItemSerializer,CartSerializer
 from app.permission.custom_permission import IsAdmin,IsCustomer
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from django.db.models import Case, When, F, Value, Subquery, OuterRef, BooleanField,Count,IntegerField,Sum
+from django.db.models import Case, When, F, Value, Subquery, OuterRef, BooleanField,Count,Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from shop.common import MESSAGES
 from rest_framework import generics,filters,status
+
+
+class CartListView(generics.ListAPIView):
+    queryset = Cart.objects.select_related('shop','user').prefetch_related(Prefetch('cartitem_cart',queryset=Cartitem.objects.order_by('-updated_at')))
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = {
+        'user__id': ["in"],
+        'shop__id': ["in"],
+    }
+    search_fields = ['user__name']
+    serializer_class = CartSerializer
+    authentication_classes = [JWTAuthentication]  # Use JWT Authentication
+    permission_classes = [IsAdmin]  # Only authenticated users can view categories
+
+    def list(self, request, *args, **kwargs):
+        try:
+            # filtered_queryset = self.get_queryset()
+            queryset = self.filter_queryset(self.queryset)
+            count = queryset.aggregate(total_count=Count('id'))
+
+            # Pagination parameters
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                paginated_response = self.get_paginated_response(serializer.data)
+                paginated_response.data['total_count'] = count
+                return paginated_response
+
+            # If pagination is not applied, return all results
+            serializer = self.get_serializer(queryset,many=True)
+            return Response({
+                'results': serializer.data,
+                'total_count': count,
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'status': '0', 'error': str(e)}, status=status.HTTP_409_CONFLICT)
+
 
 class add_cart_item(APIView):
     authentication_classes = [JWTAuthentication]  # Use JWT Authentication
@@ -71,14 +108,14 @@ class add_cart_item(APIView):
 
         return response
 
-class CartListView(generics.ListAPIView):
-    queryset = Cart.objects.select_related('shop','user').all()
+
+class UserCartListView(generics.ListAPIView):
+    queryset = Cart.objects.filter(status='new').select_related('shop','user').prefetch_related(Prefetch('cartitem_cart',queryset=Cartitem.objects.order_by('-updated_at')))
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = {
-        'user__id': ["in"],
         'shop__id': ["in"],
     }
-    search_fields = ['name','phone_number']
+
     serializer_class = CartSerializer
     authentication_classes = [JWTAuthentication]  # Use JWT Authentication
     permission_classes = [IsCustomer]  # Only authenticated users can view categories
@@ -86,7 +123,7 @@ class CartListView(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
         try:
             # filtered_queryset = self.get_queryset()
-            queryset = self.filter_queryset(self.queryset)
+            queryset = self.filter_queryset(self.queryset.filter(user=request.user))
             count = queryset.aggregate(total_count=Count('id'))
 
             # Pagination parameters
@@ -98,10 +135,11 @@ class CartListView(generics.ListAPIView):
                 return paginated_response
 
             # If pagination is not applied, return all results
-            serializer = self.get_serializer(queryset, many=True)
+            serializer = self.get_serializer(queryset,many=True)
             return Response({
                 'results': serializer.data,
                 'total_count': count,
             }, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'status': '0', 'error': str(e)}, status=status.HTTP_409_CONFLICT)
+

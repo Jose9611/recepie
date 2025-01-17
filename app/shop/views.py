@@ -8,7 +8,7 @@ from .serializers import ShopSerializer,InventorySerializer,InventoryDetailSeria
 from app.permission.custom_permission import IsAdmin,IsCustomer
 from .models import Shop,Inventory
 User = get_user_model()
-from django.db.models import Case, When, F, Value, Subquery, OuterRef, BooleanField,Count,IntegerField,Sum
+from django.db.models import Case, When, F, Value, Subquery, OuterRef, BooleanField,Count,Prefetch
 from rest_framework.response import Response
 from .service.product_bulk_import import ProductCSVBulkCreateService
 from .common.contants import MESSAGES
@@ -16,7 +16,7 @@ from .common.contants import MESSAGES
 class CreateShopView(generics.CreateAPIView):
     serializer_class = ShopSerializer
     authentication_classes = [JWTAuthentication]  # Specify your authentication method
-    permission_classes = [IsCustomer]
+    permission_classes = [IsAdmin]
 
     def perform_create(self, serializer):
         shop = serializer.save(created_user=self.request.user)
@@ -34,7 +34,7 @@ class ShopUpdateView(generics.RetrieveUpdateAPIView):
     queryset = Shop.objects.all()
     serializer_class = ShopSerializer
     authentication_classes = [JWTAuthentication]  # Use JWT Authentication
-    permission_classes = [IsCustomer]
+    permission_classes = [IsAdmin]
 
     def perform_update(self, serializer):
         # Ensure the `added_user` field stays the same during update
@@ -51,7 +51,7 @@ class ShopListView(generics.ListAPIView):
     search_fields = ['name','phone_number']
     serializer_class = ShopSerializer
     authentication_classes = [JWTAuthentication]  # Use JWT Authentication
-    permission_classes = [IsCustomer]  # Only authenticated users can view categories
+    permission_classes = [IsAdmin]  # Only authenticated users can view categories
 
     def list(self, request, *args, **kwargs):
         try:
@@ -83,7 +83,7 @@ class ShopListView(generics.ListAPIView):
 class CreateInventoryView(generics.CreateAPIView):
     serializer_class = InventorySerializer
     authentication_classes = [JWTAuthentication]  # Specify your authentication method
-    permission_classes = [IsCustomer]
+    permission_classes = [IsAdmin]
 
     def perform_create(self, serializer):
         inventory = serializer.save(created_user=self.request.user)
@@ -102,7 +102,7 @@ class InventoryUpdateView(generics.RetrieveUpdateAPIView):
     queryset = Inventory.objects.all()
     serializer_class = InventorySerializer
     authentication_classes = [JWTAuthentication]  # Use JWT Authentication
-    permission_classes = [IsCustomer]
+    permission_classes = [IsAdmin]
 
     def perform_update(self, serializer):
         # Ensure the `added_user` field stays the same during update
@@ -119,7 +119,7 @@ class InventoryListView(generics.ListAPIView):
     search_fields = ['name','phone_number']
     serializer_class = InventoryDetailSerializer
     authentication_classes = [JWTAuthentication]  # Use JWT Authentication
-    permission_classes = [IsCustomer]  # Only authenticated users can view categories
+    permission_classes = [IsAdmin]  # Only authenticated users can view categories
 
     def list(self, request, *args, **kwargs):
         try:
@@ -146,7 +146,7 @@ class InventoryListView(generics.ListAPIView):
 
 class ProductVariantCSVBulkCreate(APIView):
     authentication_classes = [JWTAuthentication]  # Use JWT Authentication
-    permission_classes = [IsCustomer]  # Only authenticated users can view categories
+    permission_classes = [IsAdmin]  # Only authenticated users can view categories
 
 
     def post(self, request):

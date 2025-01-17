@@ -13,7 +13,7 @@ User = get_user_model()
 class CreateProductView(generics.CreateAPIView):
     serializer_class = ProductSerializer
     authentication_classes = [JWTAuthentication]  # Specify your authentication method
-    permission_classes = [IsCustomer]
+    permission_classes = [IsAdmin]
 
     def perform_create(self, serializer):
         product = serializer.save(created_user=self.request.user)
@@ -32,7 +32,7 @@ class ProductUpdateView(generics.RetrieveUpdateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     authentication_classes = [JWTAuthentication]  # Use JWT Authentication
-    permission_classes = [IsCustomer]
+    permission_classes = [IsAdmin]
 
     def perform_update(self, serializer):
         # Ensure the `added_user` field stays the same during update
@@ -49,7 +49,7 @@ class ProductListView(generics.ListAPIView):
     search_fields = ['name']
     serializer_class = ProductSerializer
     authentication_classes = [JWTAuthentication]  # Use JWT Authentication
-    permission_classes = [IsCustomer]  # Only authenticated users can view categories
+    permission_classes = [IsAdmin]  # Only authenticated users can view categories
 
     def list(self, request, *args, **kwargs):
         try:
@@ -81,7 +81,7 @@ class ProductListView(generics.ListAPIView):
 class CreateProductAttributeView(generics.CreateAPIView):
     serializer_class = ProductAttributeSerializer
     authentication_classes = [JWTAuthentication]  # Specify your authentication method
-    permission_classes = [IsCustomer]
+    permission_classes = [IsAdmin]
 
     def perform_create(self, serializer):
         product_attribute = serializer.save(created_user=self.request.user)
@@ -100,7 +100,7 @@ class ProductAttributeUpdateView(generics.RetrieveUpdateAPIView):
     queryset = ProductAttribute.objects.all()
     serializer_class = ProductAttributeSerializer
     authentication_classes = [JWTAuthentication]  # Use JWT Authentication
-    permission_classes = [IsCustomer]
+    permission_classes = [IsAdmin]
 
     def perform_update(self, serializer):
         # Ensure the `added_user` field stays the same during update
@@ -117,7 +117,7 @@ class ProductAttributeListView(generics.ListAPIView):
     search_fields = ['name']
     serializer_class = ProductAttributeSerializer
     authentication_classes = [JWTAuthentication]  # Use JWT Authentication
-    permission_classes = [IsCustomer]  # Only authenticated users can view categories
+    permission_classes = [IsAdmin]  # Only authenticated users can view categories
 
     def list(self, request, *args, **kwargs):
         try:
@@ -147,7 +147,7 @@ class ProductAttributeListView(generics.ListAPIView):
 class CreateProductVariantView(generics.CreateAPIView):
     serializer_class = ProductVariantSerializer  # Your ProductVariant serializer
     authentication_classes =  [JWTAuthentication]    # Specify your authentication method
-    permission_classes = [IsCustomer]
+    permission_classes = [IsAdmin]
 
     def perform_create(self, serializer):
         # Extract data from the request for the Product and ProductAttribute
@@ -185,7 +185,7 @@ class ProductvariantUpdateView(generics.RetrieveUpdateAPIView):
     queryset = ProductVariant.objects.all()
     serializer_class =  ProductVariantSerializer
     authentication_classes = [JWTAuthentication]  # Use JWT Authentication
-    permission_classes = [IsCustomer]
+    permission_classes = [IsAdmin]
 
     def perform_update(self, serializer):
         # Ensure the `added_user` field stays the same during update
@@ -211,7 +211,7 @@ class ProductvariantListView(generics.ListAPIView):
     search_fields = ['name']
     serializer_class = ProductVariantDetailSerializer
     authentication_classes = [JWTAuthentication]  # Use JWT Authentication
-    permission_classes = [IsCustomer]  # Only authenticated users can view categories
+    permission_classes = [IsAdmin]  # Only authenticated users can view categories
 
     def list(self, request, *args, **kwargs):
         try:

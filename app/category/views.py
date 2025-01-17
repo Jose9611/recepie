@@ -12,7 +12,7 @@ from rest_framework.response import Response
 class CreateCategoryView(generics.CreateAPIView):
     serializer_class = CategorySerializer
     authentication_classes = [JWTAuthentication]  # Specify your authentication method
-    permission_classes = [IsCustomer]
+    permission_classes = [IsAdmin]
 
     def perform_create(self, serializer):
         category = serializer.save(added_user=self.request.user)
@@ -31,7 +31,7 @@ class CategoryUpdateView(generics.RetrieveUpdateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     authentication_classes = [JWTAuthentication]  # Use JWT Authentication
-    permission_classes = [IsCustomer]
+    permission_classes = [IsAdmin]
 
     def perform_update(self, serializer):
         # Ensure the `added_user` field stays the same during update
@@ -50,7 +50,7 @@ class CategoryListView(generics.ListAPIView):
     search_fields = ['name']
     serializer_class = CategorySerializer
     authentication_classes = [JWTAuthentication]  # Use JWT Authentication
-    permission_classes = [IsCustomer]  # Only authenticated users can view categories
+    permission_classes = [IsAdmin]  # Only authenticated users can view categories
 
     def list(self, request, *args, **kwargs):
         try:
