@@ -1,5 +1,5 @@
 import datetime
-from django.db.models import  Q,F
+from django.db.models import  Q,F,Sum
 from shop.common import CART_STATUS,USER
 from shop.models import  Inventory, Shop
 from .models import Cartitem,Cart
@@ -110,7 +110,7 @@ class add_cart_item(APIView):
 
 
 class UserCartListView(generics.ListAPIView):
-    queryset = Cart.objects.filter(status='new').select_related('shop','user').prefetch_related(Prefetch('cartitem_cart',queryset=Cartitem.objects.order_by('-updated_at')))
+    queryset = Cart.objects.all()
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = {
         'shop__id': ["in"],
@@ -118,12 +118,13 @@ class UserCartListView(generics.ListAPIView):
 
     serializer_class = CartSerializer
     authentication_classes = [JWTAuthentication]  # Use JWT Authentication
-    permission_classes = [IsCustomer]  # Only authenticated users can view categories
+    permission_classes = [IsAdmin]  # Only authenticated users can view categories
 
     def list(self, request, *args, **kwargs):
         try:
             # filtered_queryset = self.get_queryset()
-            queryset = self.filter_queryset(self.queryset.filter(user=request.user))
+            queryset = self.filter_queryset(self.queryset.filter(status='new',user=request.user).select_related('shop', 'user').prefetch_related(
+    Prefetch('cartitem_cart', queryset=Cartitem.objects.annotate(item_total=F('inventory__price') * F('qty')).order_by('-updated_at'))).annotate( grand_total=Sum(F('cartitem_cart__inventory__price') * F('cartitem_cart__qty'))))
             count = queryset.aggregate(total_count=Count('id'))
 
             # Pagination parameters

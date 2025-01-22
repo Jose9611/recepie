@@ -7,7 +7,7 @@ class CartItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cartitem
-        fields = ['id','created_at','updated_at']
+        fields = ['id']
 
     def to_representation(self, instance):
         # Get the default representation
@@ -17,6 +17,10 @@ class CartItemSerializer(serializers.ModelSerializer):
         representation['product_name'] = instance.variant.name if instance.variant and instance.variant.name else None
         representation['mrp'] =  instance.variant.mrp if instance.variant and instance.variant.mrp else None
         representation['price'] = instance.inventory.price if instance.inventory and instance.inventory.price else None
+        representation['quantity'] = instance.qty if instance.qty else None
+        representation['total'] = instance.item_total
+        representation['created_at'] = instance.created_at
+        representation['updated_at'] = instance.updated_at
         return representation
 
 
@@ -36,6 +40,7 @@ class CartSerializer(serializers.ModelSerializer):
         # Add custom fields
         representation['shop'] = instance.shop.name if instance.shop and instance.shop.name else None
         representation['user'] = instance.user.name if instance.user else None
+        representation['grand_total'] = instance.grand_total if instance.grand_total else 0
         return representation
 
 

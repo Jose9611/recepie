@@ -117,3 +117,26 @@ USER = {
     'STAFF': 3,
     'USER': 4
 }
+ORDER_STATUS = {
+    'PaymentDone': 'PaymentDone',
+    'PaymentPending': 'PaymentPending',
+    'PaymentFailed': 'PaymentFailed',
+    'Placed': 'Placed',
+    'Approved': 'Approved',
+    'Rejected': 'Rejected',
+    'Modified': 'Modified',
+    'Packed': 'Packed',
+    'AwaitingPickUp': 'AwaitingPickUp',
+    'DriverAccepted': 'DriverAccepted',
+    'Enroute': 'Enroute',
+    'Delivered': 'Delivered',
+    'CancelledCustomer': 'CancelledCustomer',
+    'CancelledMerchant': 'CancelledMerchant',
+    'CancelledQwqer': 'CancelledQwqer',
+    'Undelivered': 'Undelivered'
+}
+ORDER_PAYMENT_TYPE = {
+    'COD': 1,
+    'OnlinePayment': 2,
+    'Wallet': 3
+}
