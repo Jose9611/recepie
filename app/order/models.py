@@ -77,3 +77,12 @@ class Order(models.Model):
     cancellation_comment = models.TextField(blank=True, null=True, max_length=500)
     cancelled = models.ForeignKey(User, on_delete=models.CASCADE, related_name='order_cancelled_user', blank=True,
                                   null=True)
+
+class Orderupdates(models.Model):
+    id = models.AutoField(db_column='Id', primary_key=True)  # Field name made lowercase.
+    order = models.ForeignKey(Order, to_field="order_id", db_column="order_id", on_delete=models.CASCADE,
+                              related_name='orderupdates')
+    status = models.TextField()  # This field type is a guess.
+    created_at = models.DateTimeField(auto_now_add=True)
+    modification = models.TextField(blank=True, null=True)
+    modified_by = models.TextField(blank=True, null=True)
