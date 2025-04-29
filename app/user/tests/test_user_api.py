@@ -7,13 +7,16 @@ from django.urls import reverse
 
 from rest_framework.test import APIClient
 from rest_framework import status
-
+from core.models import User
 
 CREATE_USER_URL = reverse('user:create')
 TOKEN_URL = reverse('user:token')
 ME_URL = reverse('user:me')
-
-
+from unittest.mock import patch, MagicMock
+from user.utils import send_sms_otp
+from core.models import OTP
+from twilio.rest import Client
+from django.conf import settings
 def create_user(**params):
     """Create and return a new user."""
     return get_user_model().objects.create_user(**params)
@@ -31,6 +34,7 @@ class PublicUserApiTests(TestCase):
             'email': 'test@example.com',
             'password': 'testpass123',
             'name': 'Test Name',
+            'phone':'9961209142',
         }
         res = self.client.post(CREATE_USER_URL, payload)
 
@@ -45,6 +49,7 @@ class PublicUserApiTests(TestCase):
             'email': 'test@example.com',
             'password': 'testpass123',
             'name': 'Test Name',
+            'phone': '9961209142',
         }
         create_user(**payload)
         res = self.client.post(CREATE_USER_URL, payload)
@@ -57,6 +62,7 @@ class PublicUserApiTests(TestCase):
             'email': 'test@example.com',
             'password': 'pw',
             'name': 'Test name',
+            'phone': '9961209142',
         }
         res = self.client.post(CREATE_USER_URL, payload)
 
@@ -69,9 +75,10 @@ class PublicUserApiTests(TestCase):
     def test_create_token_for_user(self):
         """Test generates token for valid credentials."""
         user_details = {
-            'name': 'Test Name',
+
             'email': 'test@example.com',
             'password': 'test-user-password123',
+
         }
         create_user(**user_details)
 
@@ -81,7 +88,7 @@ class PublicUserApiTests(TestCase):
         }
         res = self.client.post(TOKEN_URL, payload)
 
-        self.assertIn('token', res.data)
+        self.assertIn('refresh', res.data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_create_token_bad_credentials(self):
@@ -92,7 +99,7 @@ class PublicUserApiTests(TestCase):
         res = self.client.post(TOKEN_URL, payload)
 
         self.assertNotIn('token', res.data)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_create_token_email_not_found(self):
         """Test error returned if user not found for given email."""
@@ -100,7 +107,7 @@ class PublicUserApiTests(TestCase):
         res = self.client.post(TOKEN_URL, payload)
 
         self.assertNotIn('token', res.data)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_create_token_blank_password(self):
         """Test posting a blank password returns an error."""
@@ -116,6 +123,44 @@ class PublicUserApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
+      # Adjust the path to where OTP is located
+    @patch('twilio.rest.Client')  # Mock Twilio client, adjust if needed
+    def test_send_sms_otp(self, mock_Twilio_Client):
+        # Setup mock behavior
+        user = User.objects.create_user(
+            email='test1@example.com',
+            password='testpass123',
+            name='Test User1',
+            phone='+919961209141'  # Ensure phone is set for OTP
+        )
+        mock_generate_otp = OTP.generate_otp(user)
+
+
+
+        # Mock the OTP object
+        mock_otp_obj = MagicMock(spec=OTP)
+        mock_otp_obj.otp = '554321'
+
+        # Return the mocked OTP object from generate_otp
+        mock_generate_otp.return_value = mock_otp_obj
+
+        # Mock the Twilio Client and its messages.create method
+        mock_client_instance = MagicMock()
+        mock_Twilio_Client.return_value = mock_client_instance
+        mock_client_instance.messages.create = MagicMock()  # Mock the create method
+
+        # Call the function being tested
+        send_sms_otp(user)
+
+        # Assertions
+        mock_generate_otp.assert_called_once_with(user)  # Ensure OTP generation is called once with the user
+        mock_Twilio_Client.assert_called_once_with(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)  # Check correct Twilio credentials
+        mock_client_instance.messages.create.assert_called_once_with(
+            to=user.phone,
+            from_=settings.TWILIO_PHONE_NUMBER,
+            body='Your OTP is: 654321',
+        )  # Ensure the correct message is sent
+
 
 class PrivateUserApiTests(TestCase):
     """Test API requests that require authentication."""
@@ -125,6 +170,7 @@ class PrivateUserApiTests(TestCase):
             email='test@example.com',
             password='testpass123',
             name='Test Name',
+            phone='9961209142',
         )
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
@@ -137,6 +183,8 @@ class PrivateUserApiTests(TestCase):
         self.assertEqual(res.data, {
             'name': self.user.name,
             'email': self.user.email,
+            'phone': self.user.phone,
+
         })
 
     def test_post_me_not_allowed(self):
@@ -155,3 +203,4 @@ class PrivateUserApiTests(TestCase):
         self.assertEqual(self.user.name, payload['name'])
         self.assertTrue(self.user.check_password(payload['password']))
         self.assertEqual(res.status_code, status.HTTP_200_OK)
+

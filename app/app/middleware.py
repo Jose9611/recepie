@@ -59,12 +59,13 @@ class JWTAuthenticationMiddleware(MiddlewareMixin):
 
             except jwt.ExpiredSignatureError:
                 raise exceptions.AuthenticationFailed('access_token expired')
-        check = CSRFCheck()
-        # populates request.META['CSRF_COOKIE'], which is used in process_view()
-        check.process_request(request)
-        reason = check.process_view(request, None, (), {})
-        print(reason,"hiii")
-        if reason:
-            # CSRF failed, bail with explicit error message
-            raise exceptions.PermissionDenied('CSRF Failed: %s' % reason)
-        return user_jwt
+        if request.path not in['/api/user/otp-verify/','/api/user/create/'] :
+            check = CSRFCheck()
+            # populates request.META['CSRF_COOKIE'], which is used in process_view()
+            check.process_request(request)
+            reason = check.process_view(request, None, (), {})
+            print(reason,"hiii")
+            if reason:
+                # CSRF failed, bail with explicit error message
+                raise exceptions.PermissionDenied('CSRF Failed: %s' % reason)
+            return user_jwt

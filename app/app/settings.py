@@ -1,17 +1,19 @@
 from pathlib import Path
 import os
 from datetime import timedelta
+from dotenv import load_dotenv
+load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 #SECRET_KEY = 'django-insecure-h4go%)%e_$_gixs@7%lbut21ttwvj2a16!p8ai&@kav8yf+wfb'
-SECRET_KEY = os.environ.get('SECRET_KEY', 'changeme')
-#DEBUG = True
-DEBUG = bool(int(os.environ.get('DEBUG', 0)))
+SECRET_KEY = os.getenv('SECRET_KEY', 'changeme')
+DEBUG = True
+#DEBUG = bool(int(os.getenv('DEBUG', 0)))
 
 ALLOWED_HOSTS = []
 ALLOWED_HOSTS.extend(
     filter(
         None,
-        os.environ.get('ALLOWED_HOSTS', '').split(','),
+        os.getenv('ALLOWED_HOSTS', '').split(','),
     )
 )
 SIMPLE_JWT = {
@@ -56,7 +58,11 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'core',
     'user',
-    'recipe',
+    'category',
+    'product',
+    'shop',
+    'cart',
+    'order',
 ]
 
 MIDDLEWARE = [
@@ -95,10 +101,10 @@ WSGI_APPLICATION = 'app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': os.environ.get('DB_HOST'),
-        'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USER'),
-        'PASSWORD': os.environ.get('DB_PASS'),
+        'HOST': os.getenv('DB_HOST'),
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASS'),
     }
 }
 AUTH_PASSWORD_VALIDATORS = [
@@ -141,7 +147,9 @@ REST_FRAMEWORK = {
     ],
      'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
-    )
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10  # Number of categories per page
 
 }
 REST_FRAMEWORK = {
@@ -160,3 +168,8 @@ SPECTACULAR_SETTINGS = {
 #         }
 #     }
 # }
+
+TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
+TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER')
+FROM_EMAIL = os.getenv('FROM_EMAIL')
